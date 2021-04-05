@@ -1,0 +1,8 @@
+{
+  "runtimeOptions": {
+    "additionalProbingPaths": [
+      "C:\\Users\\vagner\\.dotnet\\store\\|arch|\\|tfm|",
+      "C:\\Users\\vagner\\.nuget\\packages"
+    ]
+  }
+}
