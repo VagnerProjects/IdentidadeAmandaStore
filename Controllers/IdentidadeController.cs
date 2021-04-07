@@ -4,6 +4,7 @@ using IdentidadeAmandaStore.Domain.Contexto;
 using IdentidadeAmandaStore.Extensions;
 using IdentidadeAmandaStore.Models;
 using IdentidadeAmandaStore.Services;
+using IdentidadeAmandaStore.Services.ValidacaoIdentity.LoginValidate;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -28,17 +29,20 @@ namespace IdentidadeAmandaStore.Controllers
         private readonly IRegistrarUsuario _registrarUsuario;
         private readonly AppSettings _appSettings;
         private readonly IdentidadeAmandaStoreContext _DbIdentity;
+        private readonly IValidateLogin _validateLogin;
         public IdentidadeController(SignInManager<IdentityUser> signInManager,
                                     UserManager<IdentityUser> userManager,
                                     IRegistrarUsuario registrarUsuario,
                                     IOptions<AppSettings> appSettings,
-                                    IdentidadeAmandaStoreContext storeContext) 
+                                    IdentidadeAmandaStoreContext storeContext,
+                                    IValidateLogin validateLogin) 
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _registrarUsuario = registrarUsuario;
             _appSettings = appSettings.Value;
             _DbIdentity = storeContext;
+            _validateLogin = validateLogin;
         }
 
         [HttpPost("Nova-Identidade")]
@@ -64,28 +68,18 @@ namespace IdentidadeAmandaStore.Controllers
         {
             try
             {
-                if (!userLogin.Login.Contains("@"))
-                    return BadRequest(new IdentityMensagens().InvalidEmail(userLogin.Login));
+                var result = await _validateLogin.Validar(userLogin);
 
+                if (result.Status == 1) return BadRequest(result);
 
-                var result = await _signInManager.PasswordSignInAsync(userLogin.Login, userLogin.Senha, false, true);
+                await GerarJwt(userLogin.Login);
 
-                if (result.Succeeded)
-                    await GerarJwt(userLogin.Login);
-
-                if (result.IsLockedOut)
-                    return BadRequest(result);
-
-                if (!result.Succeeded)
-                    return BadRequest(result);
+                return Ok(result);
             }
             catch(Exception ex)
             {
                 return BadRequest(ex.Message + " " + ex.InnerException);
-            }
-
-            return Ok("Usuario logado!");
-         
+            }       
         }
 
         [HttpPost("esqueceu-senha")]

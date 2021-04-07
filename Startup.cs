@@ -36,7 +36,6 @@ namespace IdentidadeAmandaStore
             services.AddControllers();
           
             services.AddIdentityConfiguration(Configuration);
-            services.AddTransient<IdentityErrorDescriber, IdentityMensagens>();
 
             services.Configure<IdentityOptions>(opts =>
             {
@@ -48,9 +47,8 @@ namespace IdentidadeAmandaStore
                 opts.Password.RequiredLength = 6;
               
             });
-            
-                services.AddScoped<IRegistrarUsuario, RegistrarUsuario>();
-            services.AddTransient<IdentidadeAmandaStoreContext>();
+
+            DependencyInjection.Dependencias(services);
             SwaggerConfiguration.Configure(services);
         }
 

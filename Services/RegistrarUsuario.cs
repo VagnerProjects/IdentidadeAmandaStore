@@ -35,25 +35,20 @@ namespace IdentidadeAmandaStore.Services
             AutenticacaoModel.UsuarioId = Guid.Parse(user.Id);
 
             var result = await _userManager.CreateAsync(user, AutenticacaoModel.Senha);
+         
+             var motivo = new List<string>();
 
-            
-            string motivo = "";
             if (!result.Succeeded)
             {
                 foreach (var item in result.Errors)
-                {
-                    motivo += item.Description + ",\n";
-                }
+                    motivo.Add(item.Description);                   
 
-                return new ServerStatusIdentity() { Mensagem = $"Não foi possível criar a identidade!" + $"\n Motivo: {motivo}", Status = 1 };
-
+                return new ServerStatusIdentity() { Mensagem = "Não foi possível criar a identidade!", ListMensagem = motivo, Status = 1 };
             }
                 
-
             await _userManager.AddClaimAsync(user, new Claim("TipoUsuario", userTipo));
 
             return new ServerStatusIdentity() { Mensagem = "Identidade Criada!", Status = 0 };
-
         }
 
         public async Task<IServerStatusIdentity> RegistrarUsuarioService(UsuarioService usuarioService)
